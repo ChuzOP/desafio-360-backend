@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { poolPromise } from './database/connection';
 
+import authRoutes from './routes/auth.routes';
+
 dotenv.config();
 
 const app = express();
@@ -11,16 +13,14 @@ const PORT = process.env.PORT || 4000;
 app.use(express.json());
 
 // Routes
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+app.use('/api/auth', authRoutes);
 
 // Database Test
 poolPromise.then(() => {
     console.log('Database connection established');
 }).catch(err => {
     console.error('Database connection failed:', err);
-    process.exit(1); // Termina el proceso si no se puede conectar a la base de datos
+    process.exit(1);
 });
 
 // Start server
