@@ -1,29 +1,29 @@
-import sql, { config, ConnectionPool } from 'mssql';
+import sql from 'mssql';
 import dotenv from 'dotenv';
 
+// Cargar variables de entorno desde el archivo .env
 dotenv.config();
 
-const sqlConfig: config = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    server: process.env.DB_SERVER || 'localhost',
+const sqlConfig: sql.config = {
+    user: process.env.DB_USER || 'sa', // Usuario de la base de datos
+    password: process.env.DB_PASSWORD || '', // Contraseña del usuario
+    server: process.env.DB_SERVER || 'localhost\\SQLEXPRESS', // Servidor de la base de datos
+    database: process.env.DB_DATABASE || '', // Nombre de la base de datos
+    port: parseInt(process.env.DB_PORT || '1433'), // Puerto de conexión
     options: {
-        encrypt: true, // Usa true si el servidor lo requiere
-        trustServerCertificate: true // Ajusta según el entorno
+        encrypt: true, // Activar cifrado para la conexión
+        trustServerCertificate: true // Permitir certificados de servidor no confiables
     }
 };
 
-// Promesa para la conexión
-export const poolPromise: Promise<ConnectionPool> = new sql.ConnectionPool(
-    sqlConfig
-)
+// Crear un pool de conexiones y manejar la conexión
+export const poolPromise = new sql.ConnectionPool(sqlConfig)
     .connect()
     .then((pool) => {
         console.log('Connected to SQL Server');
-        return pool;
+        return pool; // Devolver el pool de conexiones
     })
     .catch((err) => {
-        console.error('Database connection failed:', err);
-        throw err;
+        console.error('Database connection failed:', err); // Manejo de errores
+        throw err; // Lanzar el error para su manejo en otros lugares
     });
