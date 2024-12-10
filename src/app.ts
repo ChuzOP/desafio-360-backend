@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+
 import { poolPromise } from './database/connection';
 import routes from './routes/index.routes';
 
@@ -10,6 +12,7 @@ const PORT = process.env.PORT || 4000;
 
 // Middlewares
 app.use(express.json());
+app.use(cookieParser());
 
 // Centralización de rutas
 app.use('/api', routes);

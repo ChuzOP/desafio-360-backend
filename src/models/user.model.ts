@@ -7,3 +7,8 @@ export interface IUserRegister {
     nombre_completo?: string;
     direccion?: string;
 }
+
+export interface IUserLogin {
+    correo_electronico: string;
+    password: string;
+}
