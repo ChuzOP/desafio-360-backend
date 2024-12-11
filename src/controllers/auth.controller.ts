@@ -11,9 +11,15 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         const { rol_id, correo_electronico, nombre, password, telefono, nombre_completo, direccion } = userData;
 
         if (!rol_id || !correo_electronico || !nombre || !password) {
-            res.status(400).json({ error: 'Todos los campos requeridos deben estar completos.' });
+            res.status(400).json({
+                success: false,
+                message: "Todos los campos requeridos deben estar completos.",
+                error: {
+                    validation: { rol_id, correo_electronico, nombre, password }
+                }
+            });
             return;
-        }
+        };
 
         const hashedPassword = await hashPassword(password);
 
@@ -28,13 +34,17 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             .input('nombre_completo', nombre_completo || null)
             .execute('sp_usuario_create');
 
-        res.status(201).json({ message: 'Usuario registrado exitosamente.' });
+        res.status(201).json({
+            success: true,
+            message: "Usuario registrado exitosamente.",
+            data: { correo_electronico, nombre, rol_id }
+        });
     } catch (error) {
         console.error('Error al registrar usuario:', error);
 
         const { status, message } = handleDatabaseError(error);
 
-        res.status(status).json({ error: message });
+        res.status(status).json({ success: false, message: "Error al registrar el usuario.", error: message });
     }
 };
 

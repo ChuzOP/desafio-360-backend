@@ -1,9 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpecs from './swagger';
 
 import { poolPromise } from './database/connection';
 import routes from './routes/index.routes';
+import { customCss } from './utils';
 
 dotenv.config();
 
@@ -16,6 +19,14 @@ app.use(cookieParser());
 
 // Centralización de rutas
 app.use('/api', routes);
+app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpecs, {
+        customSiteTitle: 'Backend API Documentation',
+        customCss
+    })
+);
 
 // Prueba de conexión a la base de datos
 poolPromise
