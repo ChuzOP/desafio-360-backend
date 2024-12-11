@@ -1,28 +1,21 @@
-import sql from 'mssql';
+import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const sqlConfig: sql.config = {
-    user: process.env.DB_USER || 'sa',
+const sequelize = new Sequelize({
+    username: process.env.DB_USER || 'sa',
     password: process.env.DB_PASSWORD || '',
-    server: process.env.DB_SERVER || 'localhost',
     database: process.env.DB_DATABASE || '',
+    host: process.env.DB_SERVER || 'localhost',
+    dialect: 'mssql',
     port: parseInt(process.env.DB_PORT || '1433'),
-    options: {
+    timezone: '-06:00',
+    dialectOptions: {
         encrypt: true,
-        trustServerCertificate: true
-    }
-};
+        trustServerCertificate: true // Necesario para conexiones locales o autogeneradas
+    },
+    logging: false
+});
 
-// Crear un pool de conexiones y manejar la conexión
-export const poolPromise = new sql.ConnectionPool(sqlConfig)
-    .connect()
-    .then((pool) => {
-        console.log('Connected to SQL Server');
-        return pool;
-    })
-    .catch((err) => {
-        console.error('Database connection failed:', err);
-        throw err;
-    });
+export default sequelize;

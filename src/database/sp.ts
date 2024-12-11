@@ -1,20 +1,26 @@
-import { poolPromise } from './connection';
+import sequelize from './connection';
+import { QueryTypes } from 'sequelize';
 
-export const executeSP = async (spName: string, params: { [key: string]: any }) => {
+export const executeSP = async (
+    spName: string,
+    params: { [key: string]: any }
+) => {
     try {
-        const pool = await poolPromise;
-        const request = pool.request();
+        const paramEntries = Object.entries(params);
+        const paramString = paramEntries
+            .map(([key]) => `@${key} = :${key}`)
+            .join(', ');
 
-        // Añadimos los parámetros al request
-        Object.keys(params).forEach((key) => {
-            request.input(key, params[key]);
+        const query = `EXEC ${spName} ${paramString}`;
+
+        const result = await sequelize.query(query, {
+            replacements: params,
+            type: QueryTypes.SELECT // Asegúrate de usar QueryTypes desde 'sequelize'
         });
 
-        // Ejecutamos el SP
-        const result = await request.execute(spName);
-        return result.recordset;
+        return result;
     } catch (error) {
-        console.error('Error executing stored procedure:', error);
+        console.error('Error ejecutando el procedimiento almacenado:', error);
         throw error;
     }
 };

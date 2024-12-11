@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpecs from './swagger';
 
-import { poolPromise } from './database/connection';
+import sequelize from './database/connection';
 import routes from './routes/index.routes';
 import { customCss } from './utils';
 
@@ -28,17 +28,18 @@ app.use(
     })
 );
 
-// Prueba de conexión a la base de datos
-poolPromise
+// Verificar conexión a la base de datos
+sequelize
+    .authenticate()
     .then(() => {
-        console.log('Database connection established');
+        console.log('Conexión con la base de datos establecida.');
     })
-    .catch((err) => {
-        console.error('Database connection failed:', err);
+    .catch((error) => {
+        console.error('Error al conectar con la base de datos:', error);
         process.exit(1);
     });
 
 // Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

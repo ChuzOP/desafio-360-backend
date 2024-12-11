@@ -1,19 +1,25 @@
 import { Request, Response } from 'express';
-import { poolPromise } from '../database/connection';
+import sequelize from '../database/connection';
+import { QueryTypes } from 'sequelize';
 import { IUserLogin, IUserRegister } from '../models/user.model';
 
-import { comparePasswords, generateJwt, handleDatabaseError, hashPassword } from '../utils';
+import {
+    comparePasswords,
+    generateJwt,
+    handleDatabaseError,
+    hashPassword
+} from '../utils';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     const userData: IUserRegister = req.body;
 
     try {
-        const { rol_id, correo_electronico, nombre, password, telefono, nombre_completo, direccion } = userData;
+        const { rol_id, correo_electronico, nombre, password, telefono, direccion, nombre_completo } = userData;
 
         if (!rol_id || !correo_electronico || !nombre || !password) {
             res.status(400).json({
                 success: false,
-                message: "Todos los campos requeridos deben estar completos.",
+                message: 'Todos los campos requeridos deben estar completos.',
                 error: {
                     validation: { rol_id, correo_electronico, nombre, password }
                 }
@@ -23,48 +29,54 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
         const hashedPassword = await hashPassword(password);
 
-        const pool = await poolPromise;
-        await pool.request()
-            .input('rol_id', rol_id)
-            .input('correo_electronico', correo_electronico)
-            .input('nombre', nombre)
-            .input('password', hashedPassword)
-            .input('telefono', telefono || null)
-            .input('direccion', direccion || null)
-            .input('nombre_completo', nombre_completo || null)
-            .execute('sp_usuario_create');
+        await sequelize.query(
+            'EXEC sp_usuario_create :rol_id, :correo_electronico, :nombre, :password, :telefono, :direccion, :nombre_completo',
+            {
+                replacements: {
+                    rol_id,
+                    correo_electronico,
+                    nombre,
+                    password: hashedPassword,
+                    telefono: telefono || null,
+                    direccion: direccion || null,
+                    nombre_completo: nombre_completo || null
+                },
+                type: QueryTypes.RAW
+            }
+        );
 
         res.status(201).json({
             success: true,
-            message: "Usuario registrado exitosamente.",
+            message: 'Usuario registrado exitosamente.',
             data: { correo_electronico, nombre, rol_id }
         });
     } catch (error) {
         console.error('Error al registrar usuario:', error);
-
         const { status, message } = handleDatabaseError(error);
-
-        res.status(status).json({ success: false, message: "Error al registrar el usuario.", error: message });
+        res.status(status).json({ success: false, message, error: message });
     }
 };
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-    const userData: IUserLogin = req.body;
+    const { correo_electronico, password }: IUserLogin = req.body;
 
     try {
-        const { correo_electronico, password } = userData;
-
         if (!correo_electronico || !password) {
-            res.status(400).json({ error: 'El correo y la contraseña son obligatorios.' });
+            res.status(400).json({
+                error: 'El correo y la contraseña son obligatorios.'
+            });
             return;
         }
 
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('correo_electronico', correo_electronico)    
-            .execute('sp_usuario_login');
+        const [result]: any[] = await sequelize.query(
+            'EXEC sp_usuario_login :correo_electronico',
+            {
+                replacements: { correo_electronico },
+                type: QueryTypes.SELECT
+            }
+        );
 
-        const user = result.recordset[0];
+        const user = result;
 
         if (!user) {
             res.status(404).json({ error: 'Usuario no encontrado.' });
@@ -74,7 +86,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         const isPasswordValid = await comparePasswords(password, user.password);
 
         if (!isPasswordValid) {
-            res.status(401).json({ error: 'Credenciales inválidas ó incorrectas' });
+            res.status(401).json({
+                error: 'Credenciales inválidas o incorrectas.'
+            });
             return;
         }
 
@@ -82,13 +96,14 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             usuario_id: user.usuario_id,
             nombre: user.nombre,
             rol_id: user.rol_id,
-            estado_id: user.estado_id,
+            estado_id: user.estado_id
         });
 
         res.cookie('auth_token', token, {
-            httpOnly: false,
+            httpOnly: true,
             sameSite: 'strict',
-            maxAge: 1 * 24 * 60 * 60 * 1000,
+            maxAge: 24 * 60 * 60 * 1000,
+            secure: true
         });
 
         res.status(200).json({
@@ -99,13 +114,32 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
                 rol_id: user.rol_id,
                 estado_id: user.estado_id,
                 correo_electronico: user.correo_electronico
-            },
+            }
         });
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
-
         const { status, message } = handleDatabaseError(error);
-
         res.status(status).json({ error: message });
+    }
+};
+
+export const logoutUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        res.clearCookie('auth_token', {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Sesión cerrada exitosamente.'
+        });
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Ocurrió un error al cerrar la sesión. Inténtelo de nuevo más tarde.'
+        });
     }
 };

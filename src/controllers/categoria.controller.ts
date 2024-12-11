@@ -1,22 +1,37 @@
 import { Request, Response } from 'express';
-import { poolPromise } from '../database/connection';
+import { QueryTypes } from 'sequelize';
 
-export const getCategorias = async (req: Request, res: Response): Promise<void> => {
+import sequelize from '../database/connection';
+import { handleDatabaseError } from  '../utils';
+
+export const categoriasGetAll = async (req: Request, res: Response): Promise<void> => {
     try {
-        const pool = await poolPromise;
-        const result = await pool.request().query('SELECT * FROM vw_categoria_producto_list');
-        
+        const categorias: any[] = await sequelize.query(
+            'EXEC sp_categorias_productos_list',
+            { type: QueryTypes.SELECT }
+        );
+
+        if (!categorias || categorias.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'No se encontraron categorías.'
+            });
+            return;
+        }
+
         res.status(200).json({
             success: true,
-            data: result.recordset,
+            message: 'Categorías listadas exitosamente.',
+            data: categorias
         });
     } catch (error) {
-        console.error('Error al obtener las categorías:', error);
+        console.error('Error al listar categorías:', error);
 
-        res.status(500).json({
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
             success: false,
-            message: 'Error al obtener las categorías.',
-            error: error,
+            message,
+            error: message
         });
     }
 };
