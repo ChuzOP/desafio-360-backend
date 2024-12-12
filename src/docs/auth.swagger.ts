@@ -2,7 +2,8 @@ export const authDocs = {
     '/api/auth/registerUser': {
         post: {
             summary: 'Registro de un nuevo usuario',
-            description: 'Endpoint para registrar un nuevo usuario en el sistema.',
+            description:
+                'Endpoint para registrar un nuevo usuario en el sistema.',
             tags: ['Autenticación'],
             requestBody: {
                 required: true,
@@ -18,7 +19,8 @@ export const authDocs = {
                                 },
                                 correo_electronico: {
                                     type: 'string',
-                                    description: 'Correo electrónico del usuario',
+                                    description:
+                                        'Correo electrónico del usuario',
                                     example: 'usuario@example.com'
                                 },
                                 password: {
@@ -49,7 +51,8 @@ export const authDocs = {
     '/api/auth/loginUser': {
         post: {
             summary: 'Inicio de sesión de usuario',
-            description: 'Endpoint para autenticar un usuario y obtener un token de acceso.',
+            description:
+                'Endpoint para autenticar un usuario y obtener un token de acceso.',
             tags: ['Autenticación'],
             requestBody: {
                 required: true,
@@ -60,13 +63,14 @@ export const authDocs = {
                             properties: {
                                 correo_electronico: {
                                     type: 'string',
-                                    description: 'Correo electrónico del usuario',
-                                    example: 'usuario@example.com'
+                                    description:
+                                        'Correo electrónico del usuario',
+                                    example: 'operador1@example.com'
                                 },
                                 password: {
                                     type: 'string',
                                     description: 'Contraseña del usuario',
-                                    example: 'password123'
+                                    example: 'PasswordEncriptada123'
                                 }
                             },
                             required: ['correo_electronico', 'password']
@@ -96,22 +100,26 @@ export const authDocs = {
                                             },
                                             nombre: {
                                                 type: 'string',
-                                                description: 'Nombre del usuario',
+                                                description:
+                                                    'Nombre del usuario',
                                                 example: 'Fulano de Tal'
                                             },
                                             rol_id: {
                                                 type: 'integer',
-                                                description: 'ID del rol del usuario',
+                                                description:
+                                                    'ID del rol del usuario',
                                                 example: 2
                                             },
                                             estado_id: {
                                                 type: 'integer',
-                                                description: 'Estado del usuario',
+                                                description:
+                                                    'Estado del usuario',
                                                 example: 1
                                             },
                                             correo_electronico: {
                                                 type: 'string',
-                                                description: 'Correo electrónico del usuario',
+                                                description:
+                                                    'Correo electrónico del usuario',
                                                 example: 'usuario@example.com'
                                             }
                                         }
@@ -130,7 +138,8 @@ export const authDocs = {
                                 properties: {
                                     error: {
                                         type: 'string',
-                                        example: 'El correo y la contraseña son obligatorios.'
+                                        example:
+                                            'El correo y la contraseña son obligatorios.'
                                     }
                                 }
                             }
@@ -146,7 +155,8 @@ export const authDocs = {
                                 properties: {
                                     error: {
                                         type: 'string',
-                                        example: 'Credenciales inválidas o incorrectas.'
+                                        example:
+                                            'Credenciales inválidas o incorrectas.'
                                     }
                                 }
                             }
@@ -163,6 +173,57 @@ export const authDocs = {
                                     error: {
                                         type: 'string',
                                         example: 'Usuario no encontrado.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    '/api/auth/logoutUser': {
+        post: {
+            summary: 'Cerrar sesión de usuario',
+            description:
+                'Endpoint para cerrar la sesión del usuario eliminando la cookie que contiene el token de autenticación.',
+            tags: ['Autenticación'],
+            responses: {
+                200: {
+                    description: 'Cierre de sesión exitoso',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: true
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example: 'Sesión cerrada exitosamente.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                500: {
+                    description: 'Error interno del servidor',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Ocurrió un error al cerrar la sesión. Inténtelo de nuevo más tarde.'
                                     }
                                 }
                             }

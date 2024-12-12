@@ -53,6 +53,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     } catch (error) {
         console.error('Error al registrar usuario:', error);
         const { status, message } = handleDatabaseError(error);
+        
         res.status(status).json({ success: false, message, error: message });
     }
 };
@@ -117,9 +118,15 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             }
         });
     } catch (error) {
-        console.error('Error al iniciar sesión:', error);
+        const error_message = `Error al iniciar sesión: ${error}`;
+        console.error(error_message);
+
         const { status, message } = handleDatabaseError(error);
-        res.status(status).json({ error: message });
+        res.status(status).json({
+            success: false,
+            message,
+            error: error_message,
+        });
     }
 };
 
