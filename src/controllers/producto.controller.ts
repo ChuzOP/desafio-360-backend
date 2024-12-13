@@ -5,13 +5,13 @@ import sequelize from '../database/connection';
 import { handleDatabaseError } from '../utils';
 
 export const productosGetPorEstado = async (req: Request, res: Response): Promise<void> => {
-    const { estado } = req.query;
+    const { estado_id } = req.query;
 
     try {
         const productos: any[] = await sequelize.query(
-            'EXEC sp_producto_listar_por_estado :nombre_estado',
+            'EXEC sp_producto_listar_por_estado :estado_id',
             {
-                replacements: { nombre_estado: estado || null },
+                replacements: { estado_id: estado_id || null },
                 type: QueryTypes.SELECT,
             }
         );
@@ -110,21 +110,24 @@ export const productoUpdate = async (req: Request, res: Response): Promise<void>
 
 export const productoUpdateEstado = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { nombre_estado } = req.body;
+    const { estado_id } = req.body;
 
     try {
-        if (!id || !nombre_estado) {
+        if (!id || !estado_id) {
             res.status(400).json({
                 success: false,
-                message: 'El ID del producto y el nombre del estado son obligatorios.',
+                message: 'El ID del producto y el ID del estado son obligatorios.',
             });
             return;
         }
 
         await sequelize.query(
-            'EXEC sp_producto_update_estado :producto_id, :nombre_estado',
+            'EXEC sp_producto_update_estado :producto_id, :estado_id',
             {
-                replacements: { producto_id: id, nombre_estado },
+                replacements: {
+                    producto_id: parseInt(id),
+                    estado_id: parseInt(estado_id),
+                },
                 type: QueryTypes.RAW,
             }
         );

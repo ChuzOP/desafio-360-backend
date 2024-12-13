@@ -116,26 +116,26 @@ export const categoriaUpdate = async (req: Request, res: Response): Promise<void
 
 export const updateCategoriaEstado = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { nombre_estado } = req.body;
+    const { estado_id } = req.body;
 
     try {
-        if (!id || !nombre_estado) {
+        if (!id || !estado_id) {
             res.status(400).json({
                 success: false,
-                message: 'El ID de la categoría y el nombre del estado son obligatorios.',
+                message: 'El ID de la categoría y el ID del estado son obligatorios.',
                 error: {
-                    validation: { id, nombre_estado }
-                }
+                    validation: { id, estado_id },
+                },
             });
             return;
         }
 
         await sequelize.query(
-            'EXEC sp_categoria_producto_update_estado :categoria_producto_id, :nombre_estado',
+            'EXEC sp_categoria_producto_update_estado :categoria_producto_id, :estado_id',
             {
                 replacements: {
                     categoria_producto_id: id,
-                    nombre_estado,
+                    estado_id,
                 },
                 type: QueryTypes.RAW,
             }
@@ -157,3 +157,4 @@ export const updateCategoriaEstado = async (req: Request, res: Response): Promis
         });
     }
 };
+
