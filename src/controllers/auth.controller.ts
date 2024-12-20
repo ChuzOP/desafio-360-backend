@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import sequelize from '../database/connection';
 import { QueryTypes } from 'sequelize';
-import { IUserLogin, IUserRegister } from '../models/user.model';
 
 import {
     comparePasswords,
@@ -11,7 +10,7 @@ import {
 } from '../utils';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
-    const userData: IUserRegister = req.body;
+    const userData = req.body;
 
     try {
         const { rol_id, correo_electronico, nombre, password, telefono, direccion, nombre_completo } = userData;
@@ -59,7 +58,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 };
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
-    const { correo_electronico, password }: IUserLogin = req.body;
+    const { correo_electronico, password } = req.body;
 
     try {
         if (!correo_electronico || !password) {
