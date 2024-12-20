@@ -1,18 +1,40 @@
-export const categoriaDocs = {
-    '/api/categoria': {
+export const usuarioDocs = {
+    '/api/usuario': {
         get: {
-            summary: 'Obtener todas las categorías',
+            summary: 'Listar usuarios',
             description:
-                'Endpoint para listar todas las categorías de productos disponibles. Requiere que el token de autenticación esté almacenado en la cookie `auth_token`.',
-            tags: ['Categorías'],
+                'Obtiene un listado de usuarios filtrado opcionalmente por estado o rol.',
+            tags: ['Usuarios'],
             security: [
                 {
                     cookieAuth: []
                 }
             ],
+            parameters: [
+                {
+                    name: 'estado_id',
+                    in: 'query',
+                    required: false,
+                    schema: {
+                        type: 'number',
+                    },
+                    description:
+                        'ID del estado para filtrar usuarios. Si no se proporciona, se listarán todos los estados.'
+                },
+                {
+                    name: 'rol_id',
+                    in: 'query',
+                    required: false,
+                    schema: {
+                        type: 'number',
+                    },
+                    description:
+                        'ID del rol para filtrar usuarios. Si no se proporciona, se listarán todos los roles.'
+                }
+            ],
             responses: {
-                200: {
-                    description: 'Categorías listadas exitosamente.',
+                '200': {
+                    description: 'Listado de usuarios obtenido exitosamente.',
                     content: {
                         'application/json': {
                             schema: {
@@ -25,31 +47,41 @@ export const categoriaDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'Categorías listadas exitosamente.'
+                                            'Usuarios listados exitosamente.'
                                     },
                                     data: {
                                         type: 'array',
                                         items: {
                                             type: 'object',
                                             properties: {
-                                                categoria_id: {
-                                                    type: 'integer',
-                                                    description:
-                                                        'ID de la categoría.',
+                                                id: {
+                                                    type: 'number',
                                                     example: 1
                                                 },
                                                 nombre: {
                                                     type: 'string',
-                                                    description:
-                                                        'Nombre de la categoría.',
-                                                    example: 'Electrónicos'
+                                                    example: 'Juan Pérez'
                                                 },
-                                                descripcion: {
+                                                estado_id: {
+                                                    type: 'number',
+                                                    example: 1
+                                                },
+                                                rol_id: {
+                                                    type: 'number',
+                                                    example: 2
+                                                },
+                                                telefono: {
                                                     type: 'string',
-                                                    description:
-                                                        'Descripción de la categoría.',
+                                                    example: '555-1234'
+                                                },
+                                                direccion: {
+                                                    type: 'string',
+                                                    example: 'Calle Falsa 123'
+                                                },
+                                                nombre_completo: {
+                                                    type: 'string',
                                                     example:
-                                                        'Productos electrónicos y dispositivos.'
+                                                        'Juan Alberto Pérez Gómez'
                                                 }
                                             }
                                         }
@@ -59,221 +91,50 @@ export const categoriaDocs = {
                         }
                     }
                 },
-                401: {
-                    description:
-                        'Token de autenticación faltante o inválido en la cookie `auth_token`.',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: false
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'Token de autenticación faltante o inválido en la cookie `auth_token`.'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    '/api/categoria/': {
-        post: {
-            summary: 'Crear nueva categoría',
-            description:
-                'Endpoint para crear una nueva categoría en el sistema. Requiere que el token de autenticación esté almacenado en la cookie `auth_token`.',
-            tags: ['Categorías'],
-            security: [
-                {
-                    cookieAuth: []
-                }
-            ],
-            requestBody: {
-                required: true,
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: {
-                                categoria: {
-                                    type: 'string',
-                                    description:
-                                        'Nombre de la categoría a crear',
-                                    example: 'Electrónica'
-                                }
-                            },
-                            required: ['categoria']
-                        }
-                    }
-                }
-            },
-            responses: {
-                201: {
-                    description: 'Categoría creada exitosamente',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: true
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'Categoría creada exitosamente.'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                400: {
-                    description: 'Error de validación en los datos enviados',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: false
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'El nombre de la categoría es obligatorio y debe ser una cadena de texto.'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                500: {
-                    description: 'Error interno del servidor',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: false
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'Error al crear la categoría: [mensaje de error específico]'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    '/api/categoria/{id}': {
-        put: {
-            summary: 'Actualizar una categoría existente',
-            description:
-                'Este endpoint permite actualizar el nombre de una categoría existente en el sistema.',
-            tags: ['Categorías'],
-            parameters: [
-                {
-                    name: 'id',
-                    in: 'path',
-                    required: true,
-                    description: 'ID de la categoría que se desea actualizar.',
-                    schema: {
-                        type: 'string'
-                    }
-                }
-            ],
-            requestBody: {
-                required: true,
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: {
-                                nueva_categoria: {
-                                    type: 'string',
-                                    description:
-                                        'Nuevo nombre para la categoría.',
-                                    example: 'test'
-                                }
-                            },
-                            required: ['categoria']
-                        }
-                    }
-                }
-            },
-            security: [
-                {
-                    cookieAuth: []
-                }
-            ],
-            responses: {
-                '200': {
-                    description: 'Categoría actualizada exitosamente.',
-                    schema: {
-                        type: 'object',
-                        properties: {
-                            success: {
-                                type: 'boolean',
-                                example: true
-                            },
-                            message: {
-                                type: 'string',
-                                example: 'Categoría actualizada exitosamente.'
-                            }
-                        }
-                    }
-                },
                 '400': {
-                    description: 'Error de validación.',
-                    schema: {
-                        type: 'object',
-                        properties: {
-                            success: {
-                                type: 'boolean',
-                                example: false
-                            },
-                            message: {
-                                type: 'string',
-                                example:
-                                    'El ID de la categoría y el nuevo nombre son obligatorios.'
+                    description: 'Error en los parámetros de la consulta.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Los parámetros de consulta no son válidos.'
+                                    }
+                                }
                             }
                         }
                     }
                 },
                 '500': {
-                    description: 'Error interno del servidor.',
-                    schema: {
-                        type: 'object',
-                        properties: {
-                            success: {
-                                type: 'boolean',
-                                example: false
-                            },
-                            message: {
-                                type: 'string',
-                                example:
-                                    'Ocurrió un error al actualizar la categoría.'
-                            },
-                            error: {
-                                type: 'string',
-                                example:
-                                    'Error al crear la categoría: <error details>'
+                    description:
+                        'Error interno del servidor o de la base de datos.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Error al listar usuarios: <detalle del error>'
+                                    },
+                                    error: {
+                                        type: 'string',
+                                        example:
+                                            'Error en la base de datos: <detalle del error>'
+                                    }
+                                }
                             }
                         }
                     }
@@ -281,21 +142,27 @@ export const categoriaDocs = {
             }
         }
     },
-    '/api/categoria/estado/{id}': {
+    '/api/usuario/{id}': {
         put: {
-            summary: 'Actualizar el estado de una categoría',
+            summary: 'Actualizar un usuario existente',
             description:
-                'Este endpoint permite actualizar el estado de una categoría existente en el sistema.',
-            tags: ['Categorías'],
+                'Este endpoint permite actualizar los datos de un usuario registrado en el sistema.',
+            tags: ['Usuarios'],
+            security: [
+                {
+                    cookieAuth: []
+                }
+            ],
             parameters: [
                 {
                     name: 'id',
                     in: 'path',
                     required: true,
-                    description: 'ID de la categoría que se desea actualizar.',
                     schema: {
-                        type: 'string'
-                    }
+                        type: 'string',
+                        example: '1'
+                    },
+                    description: 'ID del usuario a actualizar.'
                 }
             ],
             requestBody: {
@@ -307,20 +174,44 @@ export const categoriaDocs = {
                             properties: {
                                 estado_id: {
                                     type: 'string',
-                                    description:
-                                        'ID del nuevo estado para la categoría.',
+                                    description: 'ID del estado del usuario.',
                                     example: '2'
+                                },
+                                rol_id: {
+                                    type: 'string',
+                                    description:
+                                        'ID del rol asignado al usuario.',
+                                    example: '1'
+                                },
+                                nombre: {
+                                    type: 'string',
+                                    description: 'Nombre del usuario.',
+                                    example: 'Juan Pérez'
+                                },
+                                telefono: {
+                                    type: 'string',
+                                    description: 'Teléfono del usuario.',
+                                    example: '123456789'
+                                },
+                                direccion: {
+                                    type: 'string',
+                                    description: 'Dirección del usuario.',
+                                    example: 'Calle Falsa 123'
+                                },
+                                nombre_completo: {
+                                    type: 'string',
+                                    description: 'Nombre completo del usuario.',
+                                    example: 'Juan Manuel Pérez López'
                                 }
                             },
-                            required: ['estado_id']
+                            required: ['estado_id', 'rol_id', 'nombre']
                         }
                     }
                 }
             },
             responses: {
                 '200': {
-                    description:
-                        'El estado de la categoría ha sido actualizado exitosamente.',
+                    description: 'Usuario actualizado exitosamente.',
                     content: {
                         'application/json': {
                             schema: {
@@ -333,7 +224,7 @@ export const categoriaDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'El estado de la categoría ha sido actualizado exitosamente.'
+                                            'Usuario actualizado exitosamente.'
                                     }
                                 }
                             }
@@ -341,7 +232,8 @@ export const categoriaDocs = {
                     }
                 },
                 '400': {
-                    description: 'Error de validación.',
+                    description:
+                        'Error de validación: Faltan parámetros obligatorios o hay errores en los datos.',
                     content: {
                         'application/json': {
                             schema: {
@@ -354,25 +246,7 @@ export const categoriaDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'El ID de la categoría y el ID del estado son obligatorios.'
-                                    },
-                                    error: {
-                                        type: 'object',
-                                        properties: {
-                                            validation: {
-                                                type: 'object',
-                                                properties: {
-                                                    id: {
-                                                        type: 'string',
-                                                        nullable: true
-                                                    },
-                                                    estado_id: {
-                                                        type: 'string',
-                                                        nullable: true
-                                                    }
-                                                }
-                                            }
-                                        }
+                                            'Los campos usuario_id, estado_id, rol_id, nombre son obligatorios.'
                                     }
                                 }
                             }
@@ -380,7 +254,8 @@ export const categoriaDocs = {
                     }
                 },
                 '500': {
-                    description: 'Error interno del servidor.',
+                    description:
+                        'Error interno del servidor o error en la base de datos.',
                     content: {
                         'application/json': {
                             schema: {
@@ -393,24 +268,136 @@ export const categoriaDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'Error al actualizar el estado de la categoría: <detalle del error>'
+                                            'Error al actualizar el usuario: <detalle del error>'
                                     },
                                     error: {
                                         type: 'string',
                                         example:
-                                            'Error al actualizar el estado de la categoría: <detalle del error>'
+                                            'Error en la base de datos: <detalle del error>'
                                     }
                                 }
                             }
                         }
                     }
                 }
-            },
+            }
+        }
+    },
+    '/api/usuario/estado/{id}': {
+        put: {
+            summary: 'Actualizar el estado de un usuario',
+            description:
+                'Permite actualizar únicamente el estado asociado a un usuario en el sistema.',
+            tags: ['Usuarios'],
             security: [
                 {
                     cookieAuth: []
                 }
-            ]
+            ],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: {
+                        type: 'string',
+                        example: '1'
+                    },
+                    description: 'ID del usuario cuyo estado será actualizado.'
+                }
+            ],
+            requestBody: {
+                required: true,
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                estado_id: {
+                                    type: 'number',
+                                    description:
+                                        'ID del nuevo estado del usuario.',
+                                    example: 2
+                                }
+                            },
+                            required: ['estado_id']
+                        }
+                    }
+                }
+            },
+            responses: {
+                '200': {
+                    description:
+                        'El estado del usuario ha sido actualizado exitosamente.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: true
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'El estado del usuario ha sido actualizado exitosamente.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '400': {
+                    description:
+                        'Error de validación: Faltan parámetros obligatorios o hay errores en los datos.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'El ID del usuario y el ID del estado son obligatorios.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                '500': {
+                    description:
+                        'Error interno del servidor o error en la base de datos.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Error al actualizar el estado del usuario: <detalle del error>'
+                                    },
+                                    error: {
+                                        type: 'string',
+                                        example:
+                                            'Error en la base de datos: <detalle del error>'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 };

@@ -109,7 +109,7 @@ export const ordenAprobar = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        const result = await sequelize.query(
+        await sequelize.query(
             'EXEC sp_orden_aprobar :orden_id',
             {
                 replacements: { orden_id },
@@ -145,7 +145,7 @@ export const ordenCancelar = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        const result = await sequelize.query(
+        await sequelize.query(
             'EXEC sp_orden_cancelar :orden_id',
             {
                 replacements: { orden_id },

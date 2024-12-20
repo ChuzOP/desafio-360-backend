@@ -1,5 +1,13 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import { authDocs } from './docs';
+import {
+    authDocs,
+    categoriaDocs,
+    clienteDocs,
+    estadoDocs,
+    ordenDocs,
+    productoDocs,
+    usuarioDocs
+} from './docs';
 
 const swaggerOptions = {
     definition: {
@@ -11,19 +19,26 @@ const swaggerOptions = {
         },
         components: {
             securitySchemes: {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT'
+                cookieAuth: {
+                    type: 'apiKey',
+                    in: 'cookie',
+                    name: 'auth_token',
+                    description:
+                        'Token de autenticación almacenado en las cookies. Al utilizar el servicio de login, automáticamente se almacenará un token en la cookie `auth_token`.'
                 }
             }
         },
-        security: [{ bearerAuth: [] }],
         paths: {
             ...authDocs,
+            ...categoriaDocs,
+            ...estadoDocs,
+            ...usuarioDocs,
+            ...productoDocs,
+            ...clienteDocs,
+            ...ordenDocs
         }
     },
-    apis: [],
+    apis: []
 };
 
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);

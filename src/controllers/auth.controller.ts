@@ -114,7 +114,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
                 nombre: user.nombre,
                 rol_id: user.rol_id,
                 estado_id: user.estado_id,
-                correo_electronico: user.correo_electronico
+                correo_electronico: user.correo_electronico,
+                auth_token: token
             }
         });
     } catch (error) {

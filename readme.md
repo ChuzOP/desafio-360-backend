@@ -38,3 +38,12 @@ En tu terminal ejecuta los siguientes comandos:
     yarn dev
 
 ¡Y listo! El servidor estará corriendo en el puerto 4000.
+
+## 📖 Acceder a la Documentación de la API
+La documentación de la API se genera automáticamente con Swagger. Una vez que el servidor esté corriendo, puedes acceder a la documentación a través de la siguiente URL:
+
+    
+    http://localhost:4000/api-docs
+    
+
+Aquí podrás explorar los endpoints, probar las solicitudes y entender cómo interactuar con la API.

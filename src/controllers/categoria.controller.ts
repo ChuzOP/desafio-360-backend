@@ -81,7 +81,7 @@ export const categoriaUpdate = async (req: Request, res: Response): Promise<void
         if (!id || !nueva_categoria) {
             res.status(400).json({
                 success: false,
-                message: 'El ID de la categoría y el nuevo nombre son obligatorios.'
+                message: 'El ID de la categoría y el nuevo nombre son obligatorios.',
             });
             return;
         }

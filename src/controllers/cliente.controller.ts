@@ -40,7 +40,7 @@ export const clienteUpdate = async (req: Request, res: Response): Promise<void> 
     const { nombre_completo, direccion, telefono } = req.body;
 
     try {
-        if (!cliente_id || !nombre_completo || !direccion) {
+        if (!cliente_id || !nombre_completo || !direccion || !telefono) {
             res.status(400).json({
                 success: false,
                 message: 'El ID del cliente, el nombre completo y la dirección son obligatorios.'

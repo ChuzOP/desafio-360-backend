@@ -13,7 +13,7 @@ const sequelize = new Sequelize({
     timezone: '-06:00',
     dialectOptions: {
         encrypt: true,
-        trustServerCertificate: true // Necesario para conexiones locales o autogeneradas
+        trustServerCertificate: true
     },
     logging: false
 });
