@@ -107,6 +107,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         });
 
         res.status(200).json({
+            success: true,
             message: 'Inicio de sesión exitoso.',
             data: {
                 usuario_id: user.usuario_id,

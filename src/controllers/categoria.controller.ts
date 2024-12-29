@@ -36,6 +36,43 @@ export const categoriasGetAll = async (req: Request, res: Response): Promise<voi
     }
 };
 
+export const categoriasGetById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const categoria: any[] = await sequelize.query(
+            'EXEC sp_categoria_producto_list_by_id :categoria_producto_id',
+            {
+                replacements: { categoria_producto_id: id },
+                type: QueryTypes.SELECT
+            }
+        );
+
+        if (!categoria || categoria.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'No se encontraron categorías.'
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Categorías listadas exitosamente.',
+            data: categoria[0]
+        });
+    } catch (error) {
+        console.error('Error al listar categorías:', error);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: message
+        });
+    }
+};
+
 export const categoriaCreate = async (req: Request, res: Response): Promise<void> => {
     const { categoria }: { categoria: string } = req.body;
 
@@ -75,10 +112,10 @@ export const categoriaCreate = async (req: Request, res: Response): Promise<void
 
 export const categoriaUpdate = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { nueva_categoria } = req.body;
+    const { nueva_categoria, estado_id } = req.body;
 
     try {
-        if (!id || !nueva_categoria) {
+        if (!id || !nueva_categoria || !estado_id) {
             res.status(400).json({
                 success: false,
                 message: 'El ID de la categoría y el nuevo nombre son obligatorios.',
@@ -87,11 +124,12 @@ export const categoriaUpdate = async (req: Request, res: Response): Promise<void
         }
 
         await sequelize.query(
-            'EXEC sp_categoria_producto_update :categoria_producto_id, :nueva_categoria',
+            'EXEC sp_categoria_producto_update :categoria_producto_id, :nueva_categoria, :estado_id',
             {
                 replacements: {
                     categoria_producto_id: id,
-                    nueva_categoria
+                    nueva_categoria,
+                    estado_id
                 },
                 type: QueryTypes.RAW
             }
@@ -110,50 +148,6 @@ export const categoriaUpdate = async (req: Request, res: Response): Promise<void
             success: false,
             message,
             error: error_message
-        });
-    }
-};
-
-export const updateCategoriaEstado = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const { estado_id } = req.body;
-
-    try {
-        if (!id || !estado_id) {
-            res.status(400).json({
-                success: false,
-                message: 'El ID de la categoría y el ID del estado son obligatorios.',
-                error: {
-                    validation: { id, estado_id },
-                },
-            });
-            return;
-        }
-
-        await sequelize.query(
-            'EXEC sp_categoria_producto_update_estado :categoria_producto_id, :estado_id',
-            {
-                replacements: {
-                    categoria_producto_id: id,
-                    estado_id,
-                },
-                type: QueryTypes.RAW,
-            }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: 'El estado de la categoría ha sido actualizado exitosamente.',
-        });
-    } catch (error: any) {
-        const error_message = `Error al actualizar el estado de la categoría: ${error}`;
-        console.error(error_message);
-
-        const { status, message } = handleDatabaseError(error);
-        res.status(status).json({
-            success: false,
-            message,
-            error: error_message,
         });
     }
 };

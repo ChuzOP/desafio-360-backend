@@ -84,6 +84,75 @@ export const categoriaDocs = {
             }
         }
     },
+    '/api/categoria/{id}/': {
+        get: {
+            summary: 'Obtener una categoria por su Id',
+            description:
+                'Endpoint para listar una categoria por su ID. Requiere que el token de autenticación esté almacenado en la cookie `auth_token`.',
+            tags: ['Categorías'],
+            parameters: [
+                {
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    description: 'ID de la categoría que se desea ver.',
+                    schema: {
+                        type: 'string'
+                    }
+                }
+            ],
+            security: [
+                {
+                    cookieAuth: []
+                }
+            ],
+            responses: {
+                200: {
+                    description: 'Categoría listada exitosamente.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: true
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Categorías listadas exitosamente.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                401: {
+                    description:
+                        'Token de autenticación faltante o inválido en la cookie `auth_token`.',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    success: {
+                                        type: 'boolean',
+                                        example: false
+                                    },
+                                    message: {
+                                        type: 'string',
+                                        example:
+                                            'Token de autenticación faltante o inválido en la cookie `auth_token`.'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     '/api/categoria/': {
         post: {
             summary: 'Crear nueva categoría',
@@ -210,9 +279,15 @@ export const categoriaDocs = {
                                     description:
                                         'Nuevo nombre para la categoría.',
                                     example: 'test'
+                                },
+                                estado_id: {
+                                    type: 'string',
+                                    description:
+                                        'ID del nuevo estado para la categoría.',
+                                    example: '2'
                                 }
                             },
-                            required: ['categoria']
+                            required: ['categoria', 'estado_id']
                         }
                     }
                 }
@@ -279,138 +354,6 @@ export const categoriaDocs = {
                     }
                 }
             }
-        }
-    },
-    '/api/categoria/estado/{id}': {
-        put: {
-            summary: 'Actualizar el estado de una categoría',
-            description:
-                'Este endpoint permite actualizar el estado de una categoría existente en el sistema.',
-            tags: ['Categorías'],
-            parameters: [
-                {
-                    name: 'id',
-                    in: 'path',
-                    required: true,
-                    description: 'ID de la categoría que se desea actualizar.',
-                    schema: {
-                        type: 'string'
-                    }
-                }
-            ],
-            requestBody: {
-                required: true,
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: {
-                                estado_id: {
-                                    type: 'string',
-                                    description:
-                                        'ID del nuevo estado para la categoría.',
-                                    example: '2'
-                                }
-                            },
-                            required: ['estado_id']
-                        }
-                    }
-                }
-            },
-            responses: {
-                '200': {
-                    description:
-                        'El estado de la categoría ha sido actualizado exitosamente.',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: true
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'El estado de la categoría ha sido actualizado exitosamente.'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '400': {
-                    description: 'Error de validación.',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: false
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'El ID de la categoría y el ID del estado son obligatorios.'
-                                    },
-                                    error: {
-                                        type: 'object',
-                                        properties: {
-                                            validation: {
-                                                type: 'object',
-                                                properties: {
-                                                    id: {
-                                                        type: 'string',
-                                                        nullable: true
-                                                    },
-                                                    estado_id: {
-                                                        type: 'string',
-                                                        nullable: true
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                '500': {
-                    description: 'Error interno del servidor.',
-                    content: {
-                        'application/json': {
-                            schema: {
-                                type: 'object',
-                                properties: {
-                                    success: {
-                                        type: 'boolean',
-                                        example: false
-                                    },
-                                    message: {
-                                        type: 'string',
-                                        example:
-                                            'Error al actualizar el estado de la categoría: <detalle del error>'
-                                    },
-                                    error: {
-                                        type: 'string',
-                                        example:
-                                            'Error al actualizar el estado de la categoría: <detalle del error>'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            security: [
-                {
-                    cookieAuth: []
-                }
-            ]
         }
     }
 };
