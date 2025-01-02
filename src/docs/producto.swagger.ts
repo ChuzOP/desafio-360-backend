@@ -445,11 +445,10 @@ export const productoDocs = {
             }
         }
     },
-    '/api/producto/estado/{id}': {
-        put: {
-            summary: 'Actualizar el estado de un producto',
-            description:
-                'Permite actualizar el estado de un producto existente en el sistema.',
+    '/api/producto/{id}/': {
+        get: {
+            summary: 'Listar productos por id',
+            description: 'Obtiene un listado de productos filtrado por id.',
             tags: ['Productos'],
             security: [
                 {
@@ -461,37 +460,15 @@ export const productoDocs = {
                     name: 'id',
                     in: 'path',
                     required: true,
-                    description:
-                        'ID del producto cuyo estado se desea actualizar.',
+                    description: 'ID del producto que se desea ver.',
                     schema: {
-                        type: 'number',
-                        example: 1
+                        type: 'string'
                     }
                 }
             ],
-            requestBody: {
-                required: true,
-                content: {
-                    'application/json': {
-                        schema: {
-                            type: 'object',
-                            properties: {
-                                estado_id: {
-                                    type: 'number',
-                                    example: 2,
-                                    description:
-                                        'ID del nuevo estado del producto.'
-                                }
-                            },
-                            required: ['estado_id']
-                        }
-                    }
-                }
-            },
             responses: {
                 '200': {
-                    description:
-                        'El estado del producto ha sido actualizado exitosamente.',
+                    description: 'Listado de productos obtenido exitosamente.',
                     content: {
                         'application/json': {
                             schema: {
@@ -504,7 +481,54 @@ export const productoDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'El estado del producto ha sido actualizado exitosamente.'
+                                            'Productos listados exitosamente.'
+                                    },
+                                    data: {
+                                        type: 'object',
+                                        properties: {
+                                            producto_id: {
+                                                type: 'number',
+                                                example: 7
+                                            },
+                                            categoria_producto_id: {
+                                                type: 'number',
+                                                example: 2
+                                            },
+                                            estado_id: {
+                                                type: 'number',
+                                                example: 4
+                                            },
+                                            nombre: {
+                                                type: 'string',
+                                                example:
+                                                    'Auriculares Sony WH-1000XM4'
+                                            },
+                                            marca: {
+                                                type: 'string',
+                                                example: 'Sony'
+                                            },
+                                            codigo: {
+                                                type: 'string',
+                                                example: 'AUR-SONY-007'
+                                            },
+                                            stock: {
+                                                type: 'number',
+                                                example: 58
+                                            },
+                                            precio: {
+                                                type: 'number',
+                                                example: 2500
+                                            },
+                                            imagen: {
+                                                type: 'string',
+                                                example:
+                                                    'https://example.com/auriculares.jpg'
+                                            },
+                                            nombre_estado: {
+                                                type: 'string',
+                                                example: 'Disponible'
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -512,7 +536,7 @@ export const productoDocs = {
                     }
                 },
                 '400': {
-                    description: 'Error en los parámetros de la solicitud.',
+                    description: 'Error en los parámetros de la consulta.',
                     content: {
                         'application/json': {
                             schema: {
@@ -525,7 +549,7 @@ export const productoDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'El ID del producto y el ID del estado son obligatorios.'
+                                            'Los parámetros de consulta no son válidos.'
                                     }
                                 }
                             }
@@ -547,7 +571,7 @@ export const productoDocs = {
                                     message: {
                                         type: 'string',
                                         example:
-                                            'Error al actualizar el estado del producto: <detalle del error>'
+                                            'Error al listar productos: <detalle del error>'
                                     },
                                     error: {
                                         type: 'string',
