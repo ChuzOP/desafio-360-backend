@@ -68,7 +68,7 @@ CREATE TABLE ordenes (
     fecha_entrega DATE,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
-    total_orden FLOAT NOT NULL,
+    z FLOAT NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(cliente_id),
     FOREIGN KEY (estado_id) REFERENCES estados(estado_id)
 );
@@ -860,7 +860,7 @@ BEGIN
             u.correo_electronico,
             u.nombre,
             u.password,
-            r.rol AS rol_nombre,
+                r.rol AS rol_nombre,
             e.nombre AS estado_nombre
         FROM usuarios u
         INNER JOIN roles r ON u.rol_id = r.rol_id
@@ -912,6 +912,30 @@ BEGIN
             direccion,
             telefono
         FROM clientes;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE PROCEDURE sp_clientes_list_by_usuario_id
+    @usuario_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT
+            c.cliente_id,
+            c.usuario_id,
+            c.nombre_completo,
+            c.direccion,
+            c.telefono,
+            u.correo_electronico
+        FROM clientes c
+        INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
+        WHERE c.usuario_id = @usuario_id;
     END TRY
     BEGIN CATCH
         THROW;

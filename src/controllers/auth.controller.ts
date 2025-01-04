@@ -96,6 +96,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             usuario_id: user.usuario_id,
             nombre: user.nombre,
             rol_id: user.rol_id,
+            rol_nombre: user.rol_nombre,
             estado_id: user.estado_id
         });
 

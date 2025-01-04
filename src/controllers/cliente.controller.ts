@@ -35,6 +35,44 @@ export const clientesGetAll = async (req: Request, res: Response): Promise<void>
     }
 };
 
+export const clientesGetByUsuarioId = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { usuario_id } = req.params;
+        const cliente: any[] = await sequelize.query(
+            'EXEC sp_clientes_list_by_usuario_id :usuario_id',
+            { 
+                replacements: { 
+                    usuario_id
+                } ,
+                type: QueryTypes.SELECT 
+            }
+        );
+        
+        if (!cliente || cliente.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'No se encontraron clientes.'
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Clientes listados exitosamente.',
+            data: cliente[0]
+        });
+    } catch (error) {
+        console.error('Error al listar clientes:', error);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: message
+        });
+    }
+};
+
 export const clienteUpdate = async (req: Request, res: Response): Promise<void> => {
     const { cliente_id } = req.params;
     const { nombre_completo, direccion, telefono } = req.body;
