@@ -16,6 +16,6 @@ const upload = multer({ storage });
 router.get('/', authMiddleware, productosGetPorEstado);
 router.post('/', [authMiddleware, upload.single('imagen')], productoCreate);
 router.get('/:id', authMiddleware, productosGetById);
-router.put('/:id', authMiddleware, productoUpdate);
+router.put('/:id', [authMiddleware, upload.single('imagen')], productoUpdate);
 
 export default router;

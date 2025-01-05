@@ -5,7 +5,7 @@ import { handleDatabaseError } from '../utils';
 
 export const usuarioUpdate = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { estado_id, rol_id, nombre, telefono, direccion, nombre_completo } = req.body;
+    const { estado_id, rol_id, nombre } = req.body;
 
     try {
         if (!id || !estado_id || !rol_id || !nombre) {
@@ -17,9 +17,9 @@ export const usuarioUpdate = async (req: Request, res: Response): Promise<void> 
         }
 
         await sequelize.query(
-            'EXEC sp_usuario_update :usuario_id, :estado_id, :rol_id, :nombre, :telefono, :direccion, :nombre_completo',
+            'EXEC sp_usuario_update :usuario_id, :estado_id, :rol_id, :nombre',
             {
-                replacements: { usuario_id: id, estado_id, rol_id, nombre, telefono, direccion, nombre_completo },
+                replacements: { usuario_id: id, estado_id, rol_id, nombre },
                 type: QueryTypes.RAW,
             }
         );
@@ -98,6 +98,35 @@ export const usuariosList = async (req: Request, res: Response): Promise<void> =
             success: true,
             message: 'Usuarios listados exitosamente.',
             data: usuarios,
+        });
+    } catch (error) {
+        console.error('Error al listar usuarios:', error);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: message,
+        });
+    }
+};
+
+export const usuarioListById = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+        const usuario: any[] = await sequelize.query(
+            'EXEC sp_usuario_list_by_id :usuario_id',
+            {
+                replacements: { usuario_id: id },
+                type: QueryTypes.SELECT,
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Usuario listado exitosamente.',
+            data: usuario[0],
         });
     } catch (error) {
         console.error('Error al listar usuarios:', error);

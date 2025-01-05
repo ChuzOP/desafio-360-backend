@@ -38,7 +38,7 @@ export const productosGetById = async (req: Request, res: Response): Promise<voi
 
     try {
         const producto: any[] = await sequelize.query(
-            'EXEC sp_producto_list_by_id :@producto_id',
+            'EXEC sp_producto_list_by_id :producto_id',
             {
                 replacements: { producto_id: id },
                 type: QueryTypes.SELECT,
@@ -113,7 +113,8 @@ export const productoCreate = async (req: Request, res: Response): Promise<void>
 
 export const productoUpdate = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { categoria_producto_id, estado_id, nombre, marca, codigo, stock, precio, imagen } = req.body;
+    const { categoria_producto_id, estado_id, nombre, marca, codigo, stock, precio } = req.body;
+    const imagen = req.file;
 
     try {
         if (!id || !categoria_producto_id || !estado_id || !nombre || !precio) {
@@ -124,10 +125,12 @@ export const productoUpdate = async (req: Request, res: Response): Promise<void>
             return;
         }
 
+        const imagenBuffer = imagen ? imagen.buffer : null;
+
         await sequelize.query(
             'EXEC sp_producto_update :producto_id, :categoria_producto_id, :estado_id, :nombre, :marca, :codigo, :stock, :precio, :imagen',
             {
-                replacements: { producto_id: id, categoria_producto_id, estado_id, nombre, marca, codigo, stock, precio, imagen },
+                replacements: { producto_id: id, categoria_producto_id, estado_id, nombre, marca, codigo, stock, precio, imagen: imagenBuffer },
                 type: QueryTypes.RAW,
             }
         );

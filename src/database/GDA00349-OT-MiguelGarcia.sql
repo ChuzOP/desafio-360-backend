@@ -66,6 +66,7 @@ CREATE TABLE ordenes (
     telefono NVARCHAR(50) NOT NULL,
     correo_electronico NVARCHAR(255),
     fecha_entrega DATE,
+    total_orden FLOAT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
     z FLOAT NOT NULL,
@@ -624,14 +625,11 @@ BEGIN
         DECLARE @estado_id INT;
         DECLARE @es_cliente BIT = 0;
 
-        SELECT @estado_id = CASE
-                                WHEN r.rol = 'Cliente' THEN (SELECT estado_id FROM estados WHERE nombre = 'Pendiente')
-                                WHEN r.rol = 'Operador' THEN (SELECT estado_id FROM estados WHERE nombre = 'Activo')
-                            END,
-                            @es_cliente = CASE
-                                WHEN r.rol = 'Cliente' THEN 1
-                                ELSE 0
-                            END
+        SELECT @estado_id = (SELECT estado_id FROM estados WHERE nombre = 'Activo'),
+               @es_cliente = CASE
+                   WHEN r.rol = 'Cliente' THEN 1
+                   ELSE 0
+               END
         FROM roles r
         WHERE r.rol_id = @rol_id;
 
@@ -651,10 +649,6 @@ BEGIN
 
         IF @es_cliente = 1
         BEGIN
-            IF @nombre_completo IS NULL OR @direccion IS NULL
-            BEGIN
-                THROW 80003, 'Faltan datos requeridos para crear un cliente.', 1;
-            END
 
             INSERT INTO clientes (
                 usuario_id, nombre_completo, direccion, telefono
@@ -671,7 +665,7 @@ BEGIN
         THROW;
     END CATCH
 END;
-GO;
+GO
 
 EXEC sp_usuario_create
     @rol_id = 1,
@@ -690,54 +684,11 @@ EXEC sp_usuario_create
     @direccion = 'here';
 GO;
 
-EXEC sp_usuario_create
-    @rol_id = 2,
-    @correo_electronico = 'maria.garcia@example.com',
-    @nombre = 'María García',
-    @password = 'PasswordEncriptada456',
-    @telefono = '98765432',
-    @nombre_completo = 'María García López',
-    @direccion = 'here';
-GO;
-
-EXEC sp_usuario_create
-    @rol_id = 2,
-    @correo_electronico = 'jose.lopez@example.com',
-    @nombre = 'José López',
-    @password = 'PasswordEncriptada789',
-    @telefono = '56781234',
-    @nombre_completo = 'José López Martínez',
-    @direccion = 'here';
-GO;
-
-EXEC sp_usuario_create
-    @rol_id = 2,
-    @correo_electronico = 'ana.gomez@example.com',
-    @nombre = 'Ana Gómez',
-    @password = 'PasswordEncriptada456',
-    @telefono = '23456789',
-    @nombre_completo = 'Ana Gómez Torres',
-    @direccion = 'Avenida Central 456';
-GO;
-
-EXEC sp_usuario_create
-    @rol_id = 2,
-    @correo_electronico = 'carlos.rodriguez@example.com',
-    @nombre = 'Carlos Rodríguez',
-    @password = 'PasswordEncriptada123',
-    @telefono = '98765432',
-    @nombre_completo = 'Carlos Rodríguez Pérez',
-    @direccion = 'Calle 789';
-GO;
-
 CREATE PROCEDURE sp_usuario_update
     @usuario_id INT,
     @estado_id INT,
     @rol_id INT,
-    @nombre NVARCHAR(255),
-    @telefono NVARCHAR(50) = NULL,
-    @direccion NVARCHAR(255) = NULL,
-    @nombre_completo NVARCHAR(255) = NULL
+    @nombre NVARCHAR(255)
 AS
 BEGIN
     BEGIN TRY
@@ -750,7 +701,7 @@ BEGIN
             THROW 70005, 'No existe un estado con ese ID.', 1;
         END
 
-        IF NOT EXISTS (SELECT 1 FROM usuarios WHERE @usuario_id = @usuario_id)
+        IF NOT EXISTS (SELECT 1 FROM usuarios WHERE usuario_id = @usuario_id)
         BEGIN
             THROW 80001, 'No existe un usuario con ese ID.', 1;
         END;
@@ -758,25 +709,9 @@ BEGIN
         UPDATE usuarios
         SET
             nombre = @nombre,
-            estado_id = @estado_id
+            estado_id = @estado_id,
+            rol_id = @rol_id
         WHERE usuario_id = @usuario_id;
-
-        DECLARE @es_cliente BIT = (SELECT CASE WHEN rol = 'Cliente' THEN 1 ELSE 0 END FROM roles WHERE rol_id = @rol_id);
-
-        IF @es_cliente = 1
-        BEGIN
-            IF @nombre_completo IS NULL OR @direccion IS NULL
-            BEGIN
-                THROW 80003, 'Faltan datos requeridos para actualizar un cliente.', 1;
-            END
-
-            UPDATE clientes
-            SET
-                nombre_completo = @nombre_completo,
-                direccion = @direccion,
-                telefono = @telefono
-            WHERE usuario_id = @usuario_id;
-        END
 
         COMMIT TRANSACTION;
     END TRY
@@ -789,7 +724,6 @@ GO;
 
 CREATE PROCEDURE sp_cliente_update
     @cliente_id INT,
-    @usuario_id INT,
     @nombre_completo NVARCHAR(255),
     @direccion NVARCHAR(255),
     @telefono NVARCHAR(50)
@@ -805,14 +739,8 @@ BEGIN
             THROW 80001, 'No existe un cliente con ese ID.', 1;
         END;
 
-        IF EXISTS (SELECT 1 FROM clientes WHERE usuario_id = @usuario_id AND cliente_id != @cliente_id)
-        BEGIN
-            THROW 80002, 'El usuario_id ya está asignado a otro cliente.', 1;
-        END;
-
         UPDATE clientes
         SET
-            usuario_id = @usuario_id,
             nombre_completo = @nombre_completo,
             direccion = @direccion,
             telefono = @telefono
@@ -919,30 +847,6 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_clientes_list_by_usuario_id
-    @usuario_id INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRY
-        SELECT
-            c.cliente_id,
-            c.usuario_id,
-            c.nombre_completo,
-            c.direccion,
-            c.telefono,
-            u.correo_electronico
-        FROM clientes c
-        INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
-        WHERE c.usuario_id = @usuario_id;
-    END TRY
-    BEGIN CATCH
-        THROW;
-    END CATCH
-END;
-GO
-
 CREATE PROCEDURE sp_usuario_list_by_id
     @usuario_id INT
 AS
@@ -963,6 +867,30 @@ BEGIN
         INNER JOIN roles r ON u.rol_id = r.rol_id
         INNER JOIN estados e ON u.estado_id = e.estado_id
         WHERE u.usuario_id = @usuario_id;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE PROCEDURE sp_clientes_list_by_usuario_id
+    @usuario_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        SELECT
+            c.cliente_id,
+            c.usuario_id,
+            c.nombre_completo,
+            c.direccion,
+            c.telefono,
+            u.correo_electronico
+        FROM clientes c
+        INNER JOIN usuarios u ON c.usuario_id = u.usuario_id
+        WHERE c.usuario_id = @usuario_id;
     END TRY
     BEGIN CATCH
         THROW;
@@ -1108,27 +1036,10 @@ BEGIN
             THROW 80001, 'No existen los estados requeridos ("En Proceso" o "Aprobado").', 1;
         END;
 
-        -- Para evitar aprobar ordenes que ya estan aprobadas o canceladas
         IF NOT EXISTS (SELECT 1 FROM ordenes WHERE orden_id = @orden_id AND estado_id = @estado_proceso_id)
         BEGIN
             THROW 80002, 'La orden no existe o no está en estado "En Proceso".', 1;
         END;
-
-        IF EXISTS (
-            SELECT 1
-            FROM orden_detalles od
-            INNER JOIN productos p ON od.producto_id = p.producto_id
-            WHERE od.orden_id = @orden_id AND od.cantidad > p.stock
-        )
-        BEGIN
-            THROW 80003, 'No hay suficiente stock para uno o más productos en la orden.', 1;
-        END;
-
-        UPDATE productos
-        SET stock = stock - od.cantidad
-        FROM productos p
-        INNER JOIN orden_detalles od ON p.producto_id = od.producto_id
-        WHERE od.orden_id = @orden_id;
 
         UPDATE ordenes
         SET estado_id = @estado_aprobado_id
@@ -1169,6 +1080,12 @@ BEGIN
         BEGIN
             THROW 80002, 'No existe una orden con ese ID que se pueda cancelar.', 1;
         END;
+
+        UPDATE productos
+        SET stock = stock + od.cantidad
+        FROM productos p
+        INNER JOIN orden_detalles od ON p.producto_id = od.producto_id
+        WHERE od.orden_id = @orden_id;
 
         UPDATE ordenes
         SET estado_id = @estado_cancelado_id

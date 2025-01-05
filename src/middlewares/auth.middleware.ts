@@ -6,6 +6,7 @@ interface IUserPayload {
     nombre: string;
     rol_id: number;
     estado_id: number;
+    rol_nombre: string;
 }
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
