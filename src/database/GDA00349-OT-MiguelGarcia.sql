@@ -79,7 +79,7 @@ CREATE TABLE orden_detalles (
     producto_id INT NOT NULL,
     cantidad INT NOT NULL,
     precio FLOAT NOT NULL,
-    subtotal AS (cantidad * precio),
+    subtotal AS (CAST(cantidad AS FLOAT) * precio),
     FOREIGN KEY (orden_id) REFERENCES ordenes(orden_id),
     FOREIGN KEY (producto_id) REFERENCES productos(producto_id)
 );
@@ -1269,7 +1269,7 @@ BEGIN
     INNER JOIN
         clientes c ON o.cliente_id = c.cliente_id
     INNER JOIN
-        usuarios u ON c.cliente_id = u.usuario_id
+        usuarios u ON c.usuario_id = u.usuario_id
     LEFT JOIN
         estados e ON o.estado_id = e.estado_id
     WHERE
