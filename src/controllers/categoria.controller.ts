@@ -152,3 +152,42 @@ export const categoriaUpdate = async (req: Request, res: Response): Promise<void
     }
 };
 
+export const categoriaInactivate = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+
+    try {
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                message: 'El ID de la categoría es obligatorio.',
+            });
+            return;
+        }
+
+        await sequelize.query(
+            'EXEC sp_categoria_producto_inactivar :categoria_producto_id',
+            {
+                replacements: {
+                    categoria_producto_id: id
+                },
+                type: QueryTypes.RAW
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Categoría actualizada exitosamente.'
+        });
+    } catch (error: any) {
+        const error_message = `Error al crear la categoría: ${error}`;
+        console.error(error_message);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: error_message
+        });
+    }
+};
+

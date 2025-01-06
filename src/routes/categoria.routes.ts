@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
     categoriaCreate,
+    categoriaInactivate,
     categoriasGetAll,
     categoriasGetById,
     categoriaUpdate,
@@ -13,5 +14,6 @@ router.get('/', authMiddleware, categoriasGetAll);
 router.post('/', authMiddleware, categoriaCreate);
 router.get('/:id', authMiddleware, categoriasGetById);
 router.put('/:id', authMiddleware, categoriaUpdate);
+router.put('/inactivate/:id', authMiddleware, categoriaInactivate);
 
 export default router;

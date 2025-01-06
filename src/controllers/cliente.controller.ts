@@ -35,6 +35,44 @@ export const clientesGetAll = async (req: Request, res: Response): Promise<void>
     }
 };
 
+export const clienteGetById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { cliente_id } = req.params;
+        const cliente: any[] = await sequelize.query(
+            'EXEC sp_cliente_list_by_id :cliente_id',
+            { 
+                replacements: { 
+                    cliente_id
+                } ,
+                type: QueryTypes.SELECT 
+            }
+        );
+        
+        if (!cliente || cliente.length === 0) {
+            res.status(404).json({
+                success: false,
+                message: 'No se encontraron clientes.'
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Clientes listados exitosamente.',
+            data: cliente[0]
+        });
+    } catch (error) {
+        console.error('Error al listar clientes:', error);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: message
+        });
+    }
+};
+
 export const clientesGetByUsuarioId = async (req: Request, res: Response): Promise<void> => {
     try {
         const { usuario_id } = req.params;
@@ -87,13 +125,51 @@ export const clienteUpdate = async (req: Request, res: Response): Promise<void> 
         }
 
         await sequelize.query(
-            'EXEC sp_cliente_editar :cliente_id, :nombre_completo, :direccion, :telefono',
+            'EXEC sp_cliente_update :cliente_id, :nombre_completo, :direccion, :telefono',
             {
                 replacements: {
                     cliente_id,
                     nombre_completo,
                     direccion,
                     telefono
+                },
+                type: QueryTypes.RAW
+            }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Cliente actualizado exitosamente.'
+        });
+    } catch (error) {
+        console.error('Error al actualizar cliente:', error);
+
+        const { status, message } = handleDatabaseError(error);
+        res.status(status).json({
+            success: false,
+            message,
+            error: message
+        });
+    }
+};
+
+export const clienteInactivate = async (req: Request, res: Response): Promise<void> => {
+    const { cliente_id } = req.params;
+
+    try {
+        if (!cliente_id) {
+            res.status(400).json({
+                success: false,
+                message: 'El ID del cliente son obligatorios.'
+            });
+            return;
+        }
+
+        await sequelize.query(
+            'EXEC sp_usuario_inactivar_por_cliente :cliente_id',
+            {
+                replacements: {
+                    cliente_id
                 },
                 type: QueryTypes.RAW
             }

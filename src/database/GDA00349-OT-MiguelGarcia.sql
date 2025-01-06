@@ -69,7 +69,6 @@ CREATE TABLE ordenes (
     total_orden FLOAT NOT NULL,
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE(),
-    z FLOAT NOT NULL,
     FOREIGN KEY (cliente_id) REFERENCES clientes(cliente_id),
     FOREIGN KEY (estado_id) REFERENCES estados(estado_id)
 );
@@ -367,6 +366,45 @@ BEGIN
             SET estado_id = @estado_id
             WHERE categoria_producto_id = @categoria_producto_id;
         END
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+CREATE PROCEDURE sp_categoria_producto_inactivar
+    @categoria_producto_id INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM categorias_productos WHERE categoria_producto_id = @categoria_producto_id
+        )
+        BEGIN
+            THROW 60002, 'No existe una categoría con ese ID.', 1;
+        END
+
+        DECLARE @estado_inactivo_id INT;
+        SELECT @estado_inactivo_id = estado_id FROM estados WHERE nombre = 'Inactivo';
+
+        IF @estado_inactivo_id IS NULL
+        BEGIN
+            THROW 50003, 'No existe un estado llamado "Inactivo".', 1;
+        END
+
+        UPDATE categorias_productos
+        SET estado_id = @estado_inactivo_id
+        WHERE categoria_producto_id = @categoria_producto_id;
+
+        UPDATE productos
+        SET estado_id = @estado_inactivo_id
+        WHERE categoria_producto_id = @categoria_producto_id;
 
         COMMIT TRANSACTION;
     END TRY
@@ -755,6 +793,47 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE sp_usuario_inactivar_por_cliente
+    @cliente_id INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (SELECT 1 FROM clientes WHERE cliente_id = @cliente_id)
+        BEGIN
+            THROW 80001, 'No existe un cliente con ese ID.', 1;
+        END
+
+        DECLARE @usuario_id INT;
+        SELECT @usuario_id = usuario_id FROM clientes WHERE cliente_id = @cliente_id;
+
+        IF NOT EXISTS (SELECT 1 FROM usuarios WHERE usuario_id = @usuario_id)
+        BEGIN
+            THROW 80002, 'No existe un usuario asociado al cliente.', 1;
+        END
+
+        DECLARE @estado_inactivo_id INT;
+        SELECT @estado_inactivo_id = estado_id FROM estados WHERE nombre = 'Inactivo';
+
+        IF @estado_inactivo_id IS NULL
+        BEGIN
+            THROW 80003, 'No existe un estado llamado "Inactivo".', 1;
+        END
+
+        UPDATE usuarios
+        SET estado_id = @estado_inactivo_id
+        WHERE usuario_id = @usuario_id;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
 CREATE PROCEDURE sp_usuario_login
     @correo_electronico NVARCHAR(255)
 AS
@@ -834,12 +913,16 @@ BEGIN
 
     BEGIN TRY
         SELECT
-            cliente_id,
-            usuario_id,
-            nombre_completo,
-            direccion,
-            telefono
-        FROM clientes;
+            c.cliente_id,
+            c.usuario_id,
+            c.nombre_completo,
+            c.direccion,
+            c.telefono,
+            u.estado_id,
+            e.nombre AS estado_nombre
+        FROM clientes c
+        INNER JOIN usuarios u ON u.usuario_id = c.usuario_id
+        INNER JOIN estados e ON u.estado_id = e.estado_id
     END TRY
     BEGIN CATCH
         THROW;
@@ -1144,6 +1227,53 @@ BEGIN
     WHERE
         (@cliente_id IS NULL OR o.cliente_id = @cliente_id) AND
         (@estado_id IS NULL OR o.estado_id = @estado_id)
+    ORDER BY
+        o.orden_id;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_ordenes_list_by_usuario_id
+    @usuario_id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        o.orden_id,
+        o.cliente_id,
+        o.estado_id,
+        o.direccion,
+        o.telefono,
+        o.correo_electronico,
+        o.fecha_entrega,
+        o.created_at,
+        o.updated_at,
+        o.total_orden,
+        e.nombre AS estado,
+        c.nombre_completo AS cliente_nombre,
+        (
+            SELECT
+                od.orden_detalle_id,
+                od.producto_id,
+                od.cantidad,
+                od.precio,
+                od.subtotal
+            FROM
+                orden_detalles od
+            WHERE
+                od.orden_id = o.orden_id
+            FOR JSON PATH
+        ) AS detalle_orden
+    FROM
+        ordenes o
+    INNER JOIN
+        clientes c ON o.cliente_id = c.cliente_id
+    INNER JOIN
+        usuarios u ON c.cliente_id = u.usuario_id
+    LEFT JOIN
+        estados e ON o.estado_id = e.estado_id
+    WHERE
+        u.usuario_id = @usuario_id
     ORDER BY
         o.orden_id;
 END;
