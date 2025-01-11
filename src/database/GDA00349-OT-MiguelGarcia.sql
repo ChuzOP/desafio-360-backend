@@ -1209,11 +1209,14 @@ BEGIN
             SELECT
                 od.orden_detalle_id,
                 od.producto_id,
+                p.nombre AS producto_nombre,
                 od.cantidad,
                 od.precio,
                 od.subtotal
             FROM
                 orden_detalles od
+            INNER JOIN
+                productos p ON od.producto_id = p.producto_id
             WHERE
                 od.orden_id = o.orden_id
             FOR JSON PATH
@@ -1255,11 +1258,14 @@ BEGIN
             SELECT
                 od.orden_detalle_id,
                 od.producto_id,
+                p.nombre AS producto_nombre,
                 od.cantidad,
                 od.precio,
                 od.subtotal
             FROM
                 orden_detalles od
+            INNER JOIN
+                productos p ON od.producto_id = p.producto_id
             WHERE
                 od.orden_id = o.orden_id
             FOR JSON PATH
